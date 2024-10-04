@@ -3,7 +3,6 @@ from Order import Order
 from Order import Status
 class Courier(Worker):
 
-
     def take_order(self,order:Order):
         if(self.workerStatus == WorkerStatus.FREE):
             self.workerStatus = WorkerStatus.INPROGRESSWORK

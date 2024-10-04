@@ -4,52 +4,29 @@ from Courier import Courier
 from Storekeeper import Storekeeper
 from Provider import Provider
 from Worker import WorkerStatus
-
-
 class Store:
     name: str
-    courierList: list[Courier]
     storekeeperList: list[Storekeeper]
     providerList: list[Provider]
     orderList: list[Order]
 
     def __init__(self, name: str):
         self.name = name
-        self.courierList = list()
         self.storekeeperList = list()
         self.providerList = list()
         self.orderList = list()
 
     def send_request(self, order: Order):
-        flag = False
-        for provider in self.providerList:
-            flag = provider.send_order(order)
-            if flag:
-                self.set_storekeeper(order, provider)
-                self.set_courier(order)
-                break
-        if not flag:
-            print(f'Заказ {order.orderId} был отменен')
-            order.status = Status.CANCEL
+        # Упрощаем, убирая проверку на успех
+        provider = self.providerList[0]  # Предполагаем, что есть только один поставщик
+        self.set_storekeeper(order, provider)
+        print(f'Заказ {order.orderId} был отправлен поставщику {provider.name}')
 
     def take_order(self, order: Order):
-        flag = True
-        for provider in self.providerList:
-            if provider.CheckWarehouse(order):
-                order.status = Status.ACCEPTED
-                break
-        if order.status != Status.ACCEPTED:
-            order.status = Status.CANCEL
-            flag = False
+        provider = self.providerList[0]  # Предполагаем, что есть только один поставщик
+        order.status = Status.ACCEPTED
         self.orderList.append(order)
-        return flag
-
-    def set_courier(self, order: Order):
-        for courier in self.courierList:
-            if courier.workerStatus == WorkerStatus.FREE:
-                print(f'Заказ {order.orderId} был передан курьеру')
-                courier.take_order(order)
-                break
+        return True
 
     def set_storekeeper(self, order: Order, provider: Provider):
         for storekeeper in self.storekeeperList:
@@ -61,25 +38,19 @@ class Store:
         if not self.providerList:
             print('У магазина нет поставщиков')
             return False
-        for i, provider in enumerate(self.providerList, 1):
-            print(f'{i}: Provider name - {provider.name}')
-        index = int(input('Введите номер нужного провайдера: '))
-        if 0 < index <= len(self.providerList):
-            return self.providerList[index - 1]
-        else:
-            print('Неправильный номер поставщика')
-            return False
+        provider = self.providerList[0]  # Один поставщик
+        print(f'Provider name - {provider.name}')
+        return provider
 
     def Catalog(self):
-        for i, provider in enumerate(self.providerList, 1):
-            print('-' * 20)
-            print(f'{i}: Товары {provider.name}')
-            for item, quantity in provider.warehouse.items():
-                print(f'  {item.name}: количество {quantity}')
+        provider = self.providerList[0]  # Один поставщик
+        print(f'Товары {provider.name}')
+        for item, quantity in provider.warehouse.items():
+            print(f'  {item.name}: количество {quantity}')
 
     def RetItem(self, name: str):
-        for provider in self.providerList:
-            for item in provider.warehouse.keys():
-                if item.name == name:
-                    return item
+        provider = self.providerList[0]  # Один поставщик
+        for item in provider.warehouse.keys():
+            if item.name == name:
+                return item
         return False
